@@ -1,0 +1,317 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Admin · Chittu’s Masala & Snacks</title>
+<link rel="stylesheet" href="Untitled-1.css"/>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+</head>
+<body>
+<header class="nav">
+  <div class="container nav-inner">
+    <div class="brand">
+      <div class="logo">C</div>
+      <div><h1>Admin Dashboard</h1><div class="tag">Manage products, orders & contacts</div></div>
+    </div>
+    <nav class="toolbar">
+      <a href="Untitled-2.html">← Back to site</a>
+      <button class="btn" onclick="downloadAll()">Export Excel</button>
+      <button class="btn secondary" onclick="lock()">Lock</button>
+    </nav>
+  </div>
+</header>
+
+<main class="container" id="admin">
+  <!-- Locked gate -->
+  <section id="gate" class="card" style="margin-top:18px">
+    <div class="head"><strong>Admin Login</strong><span class="muted">Enter PIN (default 1234)</span></div>
+    <div class="body row">
+      <div><input id="pin" class="input" placeholder="4-digit PIN"></div>
+      <div><button class="btn" onclick="unlock()">Unlock</button></div>
+      <div id="gateMsg" class="alert" style="display:none">Incorrect PIN</div>
+    </div>
+  </section>
+
+  <!-- Dashboard -->
+  <section id="dash" style="display:none;margin-top:18px">
+    <div class="card">
+      <div class="head"><strong>Overview</strong><span class="muted">Quick stats</span></div>
+      <div class="body kpi">
+        <div class="box"><div class="muted">Products</div><div id="dKpiP" style="font-weight:800;font-size:18px">0</div></div>
+        <div class="box"><div class="muted">Orders</div><div id="dKpiO" style="font-weight:800;font-size:18px">0</div></div>
+        <div class="box"><div class="muted">Contacts</div><div id="dKpiC" style="font-weight:800;font-size:18px">0</div></div>
+      </div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="toolbar" style="margin:14px 0">
+      <button class="btn" onclick="showTab('products')">Products</button>
+      <button class="btn secondary" onclick="showTab('orders')">Orders</button>
+      <button class="btn secondary" onclick="showTab('contacts')">Contacts</button>
+      <button class="btn secondary" onclick="showTab('settings')">Settings</button>
+      <span class="right"></span>
+      <button class="btn secondary" onclick="downloadAll()">Download Excel Report</button>
+    </div>
+
+    <!-- Products -->
+    <div id="tab-products" class="card">
+      <div class="head"><strong>Products</strong><span class="muted" id="pCount"></span></div>
+      <div class="body">
+        <div class="row">
+          <div>
+            <input id="pName" class="input" placeholder="Name">
+            <input id="pSku" class="input" placeholder="SKU" style="margin-top:8px">
+            <input id="pCat" class="input" placeholder="Category" style="margin-top:8px" value="Masala Blends">
+          </div>
+          <div>
+            <div class="row">
+              <div><input id="pPrice" class="input" type="number" placeholder="Price (₹)"></div>
+              <div><input id="pUnit" class="input" placeholder="Unit (e.g., 100g)"></div>
+            </div>
+            <div class="row" style="margin-top:8px">
+              <div><input id="pStock" class="input" type="number" placeholder="Stock"></div>
+              <div><select id="pBest" class="input"><option value="false">Bestseller? No</option><option value="true">Bestseller? Yes</option></select></div>
+            </div>
+          </div>
+        </div>
+        <input id="pImg" class="input" placeholder="Image URL" style="margin-top:8px">
+        <textarea id="pDesc" class="input" rows="3" placeholder="Short description" style="margin-top:8px"></textarea>
+        <div class="toolbar" style="margin-top:10px">
+          <button class="btn" onclick="saveProduct()">Save</button>
+          <button class="btn secondary" onclick="resetForm()">Clear</button>
+          <input type="hidden" id="pId">
+        </div>
+
+        <hr class="sep">
+        <table class="table" id="pTable"></table>
+      </div>
+    </div>
+
+    <!-- Orders -->
+    <div id="tab-orders" class="card" style="display:none">
+      <div class="head"><strong>Orders</strong><span class="muted" id="oCount"></span></div>
+      <div class="body">
+        <table class="table" id="oTable"></table>
+      </div>
+    </div>
+
+    <!-- Contacts -->
+    <div id="tab-contacts" class="card" style="display:none">
+      <div class="head"><strong>Contacts</strong><span class="muted" id="cCount"></span></div>
+      <div class="body"><table class="table" id="cTable"></table></div>
+    </div>
+
+    <!-- Settings -->
+    <div id="tab-settings" class="card" style="display:none">
+      <div class="head"><strong>Site Settings</strong><span class="muted">Branding & security</span></div>
+      <div class="body">
+        <div class="row">
+          <div>
+            <input id="sBrand" class="input" placeholder="Brand Name">
+            <input id="sTag" class="input" placeholder="Tagline" style="margin-top:8px">
+            <textarea id="sAbout" class="input" rows="3" placeholder="About" style="margin-top:8px"></textarea>
+          </div>
+          <div>
+            <input id="sPhone" class="input" placeholder="Phone">
+            <input id="sEmail" class="input" placeholder="Email" style="margin-top:8px">
+            <input id="sAddr" class="input" placeholder="Address" style="margin-top:8px">
+            <div class="row" style="margin-top:8px">
+              <div><input id="sWhats" class="input" placeholder="WhatsApp"></div>
+              <div><input id="sInsta" class="input" placeholder="Instagram URL"></div>
+            </div>
+            <div class="row" style="margin-top:8px">
+              <div><input id="sPIN" class="input" placeholder="New Admin PIN (4 digits)"></div>
+              <div><button class="btn secondary" onclick="savePIN()">Set PIN</button></div>
+            </div>
+          </div>
+        </div>
+        <div class="toolbar" style="margin-top:10px">
+          <button class="btn" onclick="saveSettings()">Save Settings</button>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<script>
+/* ===== Shared store (must match index.html) ===== */
+const LS={products:'chittu_products',orders:'chittu_orders',contacts:'chittu_contacts',settings:'chittu_settings',pin:'chittu_pin'};
+function read(k,f){try{const v=localStorage.getItem(k);return v?JSON.parse(v):f}catch{return f}}
+function write(k,v){localStorage.setItem(k,JSON.stringify(v))}
+function id(){return Math.random().toString(36).slice(2,10)}
+function INR(n){return (n||0).toLocaleString('en-IN')}
+
+let products=read(LS.products,[]);
+let orders=read(LS.orders,[]);
+let contacts=read(LS.contacts,[]);
+let settings=read(LS.settings,{
+  brandName:"Chittu’s Masala & Snacks",tagline:"Pure Spices. Honest Crunch.",about:"",
+  phone:"+91 98765 43210",email:"hello@chittus.in",address:"123 Spice Street, Coimbatore, Tamil Nadu 641001",
+  whatsapp:"+91 98765 43210",instagram:"instagram.com/chittus"
+});
+let pin=read(LS.pin, "1234");
+
+/* ===== Gate ===== */
+function unlock(){
+  const p=document.getElementById('pin').value.trim();
+  if(p===pin){ document.getElementById('gate').style.display='none'; document.getElementById('dash').style.display='block'; refresh(); }
+  else { const g=document.getElementById('gateMsg'); g.style.display='block'; setTimeout(()=>g.style.display='none',2000); }
+}
+function lock(){ document.getElementById('dash').style.display='none'; document.getElementById('gate').style.display='block'; }
+
+/* ===== Tabs ===== */
+function showTab(name){
+  ['products','orders','contacts','settings'].forEach(t=>document.getElementById('tab-'+t).style.display = (t===name)?'block':'none');
+}
+
+/* ===== Products CRUD ===== */
+function refresh(){
+  document.getElementById('dKpiP').textContent=products.length;
+  document.getElementById('dKpiO').textContent=orders.length;
+  document.getElementById('dKpiC').textContent=contacts.length;
+
+  const pT=document.getElementById('pTable');
+  document.getElementById('pCount').textContent=`${products.length} items`;
+  pT.innerHTML = `
+    <tr><th>Image</th><th>Name</th><th>SKU</th><th>Cat</th><th>Unit</th><th>Price</th><th>Stock</th><th>Best</th><th></th></tr>
+    ${products.map(p=>`<tr>
+      <td>${p.image?`<img src="${p.image}" style="width:70px;height:50px;object-fit:cover;border-radius:8px">`:''}</td>
+      <td>${esc(p.name)}</td><td>${p.sku}</td><td>${p.category}</td><td>${p.unit}</td>
+      <td>₹${INR(p.price)}</td><td>${p.stock||0}</td><td>${p.bestseller?'✓':''}</td>
+      <td>
+        <button class="btn secondary" onclick='edit("${p.id}")'>Edit</button>
+        <button class="btn secondary" onclick='del("${p.id}")'>Delete</button>
+      </td>
+    </tr>`).join('')}
+  `;
+
+  const oT=document.getElementById('oTable');
+  document.getElementById('oCount').textContent=`${orders.length} orders`;
+  oT.innerHTML = `
+    <tr><th>ID</th><th>Date</th><th>Customer</th><th>Items</th><th>Total</th><th>Status</th></tr>
+    ${orders.map(o=>`<tr>
+      <td>${o.id}</td>
+      <td>${new Date(o.date).toLocaleString()}</td>
+      <td>${esc(o.customer.name)}<div class="muted" style="font-size:12px">${esc(o.customer.phone)}</div></td>
+      <td>${o.items.map(i=>`${esc(i.name)} x${i.qty}`).join(", ")}</td>
+      <td>₹${INR(o.total)}</td>
+      <td>
+        <select onchange='setStatus("${o.id}",this.value)' class="input">
+          ${["Pending","Processing","Shipped","Delivered","Cancelled"].map(s=>`<option ${o.status===s?"selected":""}>${s}</option>`).join("")}
+        </select>
+      </td>
+    </tr>`).join('')}
+  `;
+
+  const cT=document.getElementById('cTable');
+  document.getElementById('cCount').textContent=`${contacts.length} messages`;
+  cT.innerHTML = `
+    <tr><th>Date</th><th>Name</th><th>Email</th><th>Phone</th><th>Subject</th><th>Message</th></tr>
+    ${contacts.map(c=>`<tr>
+      <td>${new Date(c.date).toLocaleString()}</td>
+      <td>${esc(c.name)}</td>
+      <td>${esc(c.email||'')}</td>
+      <td>${esc(c.phone||'')}</td>
+      <td>${esc(c.subject||'')}</td>
+      <td>${esc(c.message)}</td>
+    </tr>`).join('')}
+  `;
+
+  // settings form
+  setVal('sBrand', settings.brandName);
+  setVal('sTag', settings.tagline);
+  setVal('sAbout', settings.about||'');
+  setVal('sPhone', settings.phone);
+  setVal('sEmail', settings.email);
+  setVal('sAddr', settings.address);
+  setVal('sWhats', settings.whatsapp);
+  setVal('sInsta', settings.instagram);
+}
+function setVal(id,v){const el=document.getElementById(id); if(el) el.value=v||''}
+function esc(s){return (s||'').replace(/[&<>"']/g,m=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[m]))}
+
+function resetForm(){['pId','pName','pSku','pCat','pPrice','pUnit','pStock','pImg','pDesc'].forEach(k=>document.getElementById(k).value=''); document.getElementById('pBest').value="false";}
+function saveProduct(){
+  const p = {
+    id: document.getElementById('pId').value || id(),
+    name: document.getElementById('pName').value.trim(),
+    sku: document.getElementById('pSku').value.trim(),
+    category: document.getElementById('pCat').value.trim()||'General',
+    price: Number(document.getElementById('pPrice').value||0),
+    unit: document.getElementById('pUnit').value.trim()||'',
+    stock: Number(document.getElementById('pStock').value||0),
+    bestseller: document.getElementById('pBest').value==="true",
+    image: document.getElementById('pImg').value.trim(),
+    description: document.getElementById('pDesc').value.trim()
+  };
+  if(!p.name || !p.sku){alert('Name & SKU are required'); return;}
+  const exists = products.some(x=>x.id===p.id);
+  products = exists ? products.map(x=>x.id===p.id?p:x) : [p, ...products];
+  write(LS.products, products); resetForm(); refresh();
+}
+function edit(pid){
+  const p = products.find(x=>x.id===pid); if(!p) return;
+  setVal('pId', p.id); setVal('pName', p.name); setVal('pSku', p.sku);
+  setVal('pCat', p.category); setVal('pPrice', p.price); setVal('pUnit', p.unit);
+  setVal('pStock', p.stock); document.getElementById('pBest').value = p.bestseller?"true":"false";
+  setVal('pImg', p.image); setVal('pDesc', p.description);
+}
+function del(pid){ if(confirm('Delete this product?')){ products = products.filter(x=>x.id!==pid); write(LS.products,products); refresh(); } }
+function setStatus(oid,val){ orders = orders.map(o=>o.id===oid?({...o,status:val}):o); write(LS.orders,orders) }
+
+/* ===== Settings & PIN ===== */
+function saveSettings(){
+  settings = {
+    brandName: document.getElementById('sBrand').value.trim(),
+    tagline: document.getElementById('sTag').value.trim(),
+    about: document.getElementById('sAbout').value.trim(),
+    phone: document.getElementById('sPhone').value.trim(),
+    email: document.getElementById('sEmail').value.trim(),
+    address: document.getElementById('sAddr').value.trim(),
+    whatsapp: document.getElementById('sWhats').value.trim(),
+    instagram: document.getElementById('sInsta').value.trim()
+  };
+  write(LS.settings, settings);
+  alert('Saved. Refresh public site to see changes.');
+}
+function savePIN(){
+  const p=document.getElementById('sPIN').value.trim();
+  if(!/^\d{4}$/.test(p)) return alert('PIN must be 4 digits');
+  pin = p; write(LS.pin, pin); alert('PIN updated');
+}
+
+/* ===== Excel Export ===== */
+function makeSheets(){
+  const wb = XLSX.utils.book_new();
+  const prod = products.map(p=>({
+    ID:p.id, Name:p.name, SKU:p.sku, Category:p.category, PriceINR:p.price, Unit:p.unit,
+    Stock:p.stock, Bestseller:p.bestseller?'Yes':'No', ImageURL:p.image, Description:p.description
+  }));
+  const wsP = XLSX.utils.json_to_sheet(prod);
+  XLSX.utils.book_append_sheet(wb, wsP, "Products");
+
+  const ordRows = [];
+  orders.forEach(o=>o.items.forEach((it,idx)=>ordRows.push({
+    OrderID:o.id, OrderDate:o.date, CustomerName:o.customer.name, CustomerPhone:o.customer.phone,
+    CustomerEmail:o.customer.email, Address:o.customer.address, Line:idx+1,
+    SKU:it.sku, Product:it.name, Qty:it.qty, UnitPrice:it.price, LineTotal:it.qty*it.price, OrderTotal:o.total, Status:o.status
+  })));
+  const wsO = XLSX.utils.json_to_sheet(ordRows);
+  XLSX.utils.book_append_sheet(wb, wsO, "Orders");
+
+  const wsC = XLSX.utils.json_to_sheet(contacts.map(c=>({
+    ID:c.id, DateISO:c.date, Name:c.name, Email:c.email, Phone:c.phone, Subject:c.subject||'', Message:c.message
+  })));
+  XLSX.utils.book_append_sheet(wb, wsC, "Contacts");
+  return wb;
+}
+function downloadAll(){
+  const wb = makeSheets();
+  XLSX.writeFile(wb, "Chittus-Masala-and-Snacks.xlsx");
+}
+
+refresh(); // render tables when already unlocked (e.g., dev)
+</script>
+</body>
+</html>

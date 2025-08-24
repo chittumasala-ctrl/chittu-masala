@@ -1,0 +1,408 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Chittu’s Masala & Snacks</title>
+  <link rel="stylesheet" href="Untitled-1.css"/>
+  <!-- SheetJS for Excel export -->
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+</head>
+<body>
+  <header class="nav">
+    <div class="container nav-inner">
+      <div class="brand">
+        <div class="logo">C</div>
+        <div>
+          <h1>Chittu’s Masala & Snacks</h1>
+          <div class="tag">Pure Spices. Honest Crunch.</div>
+        </div>
+      </div>
+      <nav class="toolbar">
+        <a href="#menu">Menu</a>
+        <a href="#contact">Contact</a>
+        <a href="admin.html">Admin</a>
+        <button class="btn" onclick="openCart()">🛒 Cart <span id="cart-count"></span></button>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <!-- Hero -->
+    <section class="hero">
+      <div class="hero-grid">
+        <div>
+          <h2>Small-batch masalas & traditional snacks</h2>
+          <p>Stone-ground spices and fresh snacks, crafted without fillers. PAN-India shipping. Free delivery above ₹999.</p>
+          <div class="toolbar">
+            <a class="btn" href="#menu">Explore Menu</a>
+            <a class="btn secondary" href="#contact">Get in touch</a>
+          </div>
+          <div style="margin-top:14px"><span class="badge">🚚 Free delivery ≥ ₹999</span></div>
+        </div>
+        <div class="img hero img">
+          <!-- Replace with your hero image -->
+          <img src="https://images.unsplash.com/photo-1568605114967-8130f3a36994?q=80&w=1400&auto=format&fit=crop" alt="Spice jars"/>
+        </div>
+      </div>
+    </section>
+
+    <!-- Categories quick view -->
+    <section>
+      <div class="card">
+        <div class="head"><strong>Categories</strong><span class="muted">Quick picks</span></div>
+        <div class="body toolbar" id="category-chips">
+          <!-- categories rendered here -->
+        </div>
+      </div>
+    </section>
+
+    <!-- Menu -->
+    <section id="menu" style="margin-top:22px">
+      <div class="row" style="align-items:end">
+        <div>
+          <h3 style="margin:0 0 8px">Menu</h3>
+          <div class="muted">Add items to your cart and checkout.</div>
+        </div>
+        <div class="right toolbar">
+          <input id="search" class="input" placeholder="Search by name, SKU…" oninput="renderProducts()"/>
+          <select id="catSelect" class="input" onchange="renderProducts()"></select>
+        </div>
+      </div>
+
+      <div class="grid products" id="product-grid" style="margin-top:16px"></div>
+
+      <div class="card" style="margin-top:18px">
+        <div class="body">
+          <div class="toolbar">
+            <button class="btn secondary" onclick="downloadSheet('Products')">Download Products.xlsx</button>
+            <button class="btn secondary" onclick="downloadSheet('Contacts')">Download Contacts.xlsx</button>
+            <button class="btn secondary" onclick="downloadSheet('Orders')">Download Orders.xlsx</button>
+            <button class="btn" onclick="downloadAll()">Download Full Report</button>
+          </div>
+          <div class="muted" style="margin-top:8px">Exports include items added or submitted from this browser.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Contact -->
+    <section id="contact" style="margin-top:28px">
+      <div class="row">
+        <div>
+          <div class="card">
+            <div class="head"><strong>Contact Us</strong><span class="muted">We usually respond within 24 hours</span></div>
+            <div class="body">
+              <div id="contact-toast" style="display:none" class="toast">Thanks! We’ll get back to you.</div>
+              <div class="row">
+                <div><input id="cName" class="input" placeholder="Full Name *"></div>
+                <div><input id="cEmail" class="input" placeholder="Email *" type="email"></div>
+              </div>
+              <div class="row">
+                <div><input id="cPhone" class="input" placeholder="Phone"></div>
+                <div><input id="cSubject" class="input" placeholder="Subject"></div>
+              </div>
+              <div><textarea id="cMsg" class="input" rows="5" placeholder="Your message *"></textarea></div>
+              <div class="toolbar"><button class="btn" onclick="submitContact()">Send Message</button></div>
+            </div>
+          </div>
+        </div>
+        <div>
+          <div class="card">
+            <div class="head"><strong>Business Details</strong><span class="muted">Reach us directly</span></div>
+            <div class="body">
+              <div style="display:grid;gap:8px;font-size:15px">
+                <div>📞 <strong id="setPhone">+91 98765 43210</strong></div>
+                <div>✉️ <strong id="setEmail">hello@chittus.in</strong></div>
+                <div>📍 <strong id="setAddress">123 Spice Street, Coimbatore, Tamil Nadu 641001</strong></div>
+                <div class="muted">WhatsApp: <span id="setWhats">+91 98765 43210</span></div>
+                <div class="muted">Instagram: <span id="setInsta">instagram.com/chittus</span></div>
+              </div>
+            </div>
+          </div>
+          <div class="kpi">
+            <div class="box"><div class="muted">Products</div><div id="kpiProducts" style="font-weight:800;font-size:18px">0</div></div>
+            <div class="box"><div class="muted">Orders</div><div id="kpiOrders" style="font-weight:800;font-size:18px">0</div></div>
+            <div class="box"><div class="muted">Contacts</div><div id="kpiContacts" style="font-weight:800;font-size:18px">0</div></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="footer">
+      © <span id="year"></span> Chittu’s Masala & Snacks · All rights reserved.
+    </section>
+  </main>
+
+  <!-- Cart Drawer -->
+  <div id="cart-panel" style="position:fixed;inset:0;display:none;background:rgba(0,0,0,.45)">
+    <div style="position:absolute;right:0;top:0;height:100%;width:min(520px,100%);background:#fff;border-left:1px solid var(--border);display:flex;flex-direction:column">
+      <div class="head card" style="border:none;border-bottom:1px solid var(--border);border-radius:0">
+        <strong>Cart</strong><button class="btn secondary right" onclick="closeCart()">Close</button>
+      </div>
+      <div style="padding:16px;flex:1;overflow:auto" id="cart-items"></div>
+      <div style="padding:16px;border-top:1px solid var(--border)">
+        <div class="row">
+          <div>
+            <input id="chkName" class="input" placeholder="Full Name">
+            <input id="chkPhone" class="input" placeholder="Phone" style="margin-top:8px">
+          </div>
+          <div>
+            <input id="chkEmail" class="input" placeholder="Email">
+            <textarea id="chkAddr" class="input" rows="3" placeholder="Delivery Address" style="margin-top:8px"></textarea>
+          </div>
+        </div>
+        <hr class="sep">
+        <div class="row" style="align-items:center">
+          <div><strong>Total: ₹<span id="cart-total">0</span></strong></div>
+          <div class="right toolbar">
+            <button class="btn secondary" onclick="clearCart()">Clear</button>
+            <button class="btn" onclick="placeOrder()">Place Order</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<script>
+/* ========= DATA (localStorage) ========= */
+const LS = {
+  products: 'chittu_products',
+  orders: 'chittu_orders',
+  contacts: 'chittu_contacts',
+  settings: 'chittu_settings',
+  cart: 'chittu_cart'
+};
+const DEFAULT_SETTINGS = {
+  brandName: "Chittu’s Masala & Snacks",
+  tagline: "Pure Spices. Honest Crunch.",
+  phone: "+91 98765 43210",
+  email: "hello@chittus.in",
+  address: "123 Spice Street, Coimbatore, Tamil Nadu 641001",
+  whatsapp: "+91 98765 43210",
+  instagram: "instagram.com/chittus"
+};
+const SAMPLE_PRODUCTS = [
+  {id:id(), name:"Madras Sambar Masala", sku:"MSM-100", category:"Masala Blends", price:149, unit:"100g", stock:120, bestseller:true, image:"https://images.unsplash.com/photo-1625944527594-1f12ea1d29a6?q=80&w=1200&auto=format&fit=crop", description:"Authentic Tamil-style sambar masala. Stone-ground for max flavor."},
+  {id:id(), name:"Chettinad Pepper Chicken Masala", sku:"CPCM-100", category:"Masala Blends", price:179, unit:"100g", stock:80, bestseller:false, image:"https://images.unsplash.com/photo-1473093295043-cdd812d0e601?q=80&w=1200&auto=format&fit=crop", description:"Pepper-forward blend inspired by Chettinad cuisine."},
+  {id:id(), name:"Murukku (Handmade)", sku:"SNK-MUR-250", category:"Snacks", price:129, unit:"250g", stock:200, bestseller:true, image:"https://images.unsplash.com/photo-1601050690113-c3c1d8b3b1cc?q=80&w=1200&auto=format&fit=crop", description:"Crisp golden spirals with pure sesame & asafoetida."},
+  {id:id(), name:"Spiced Banana Chips", sku:"SNK-BAN-200", category:"Snacks", price:99, unit:"200g", stock:150, bestseller:false, image:"https://images.unsplash.com/photo-1541782786937-655c9e3b1575?q=80&w=1200&auto=format&fit=crop", description:"Thin-cut nendran chips with house chilli-lime salt."}
+];
+
+function id(){return Math.random().toString(36).slice(2,10)}
+function read(k, fallback){try{const v=localStorage.getItem(k);return v?JSON.parse(v):fallback}catch{return fallback}}
+function write(k,v){localStorage.setItem(k,JSON.stringify(v))}
+function INR(n){return (n||0).toLocaleString('en-IN')}
+
+let settings = read(LS.settings, DEFAULT_SETTINGS);
+let products = read(LS.products, SAMPLE_PRODUCTS);
+let contacts = read(LS.contacts, []);
+let orders = read(LS.orders, []);
+let cart = read(LS.cart, []);
+
+/* ========= RENDER ========= */
+function init(){
+  document.getElementById('year').textContent = new Date().getFullYear();
+  // set business details
+  setText('setPhone', settings.phone);
+  setText('setEmail', settings.email);
+  setText('setAddress', settings.address);
+  setText('setWhats', settings.whatsapp);
+  setText('setInsta', settings.instagram);
+
+  // categories
+  const cats = ['All', ...Array.from(new Set(products.map(p=>p.category)))];
+  const chips = document.getElementById('category-chips');
+  chips.innerHTML = cats.map(c=>`<span class="badge" onclick="setCategory('${c}')">${c}</span>`).join('');
+  const sel = document.getElementById('catSelect');
+  sel.innerHTML = cats.map(c=>`<option>${c}</option>`).join('');
+  renderProducts();
+  updateKpis();
+  updateCartCount();
+}
+function setText(id,val){const el=document.getElementById(id); if(el) el.textContent = val}
+
+function setCategory(c){
+  document.getElementById('catSelect').value = c;
+  renderProducts();
+}
+
+function renderProducts(){
+  const q = (document.getElementById('search').value||'').toLowerCase();
+  const cat = document.getElementById('catSelect').value || 'All';
+  const list = products.filter(p=>{
+    const okCat = (cat==='All' || p.category===cat);
+    const okQ = [p.name,p.sku,p.description].join(' ').toLowerCase().includes(q);
+    return okCat && okQ;
+  });
+  const grid = document.getElementById('product-grid');
+  grid.innerHTML = list.map(p=>`
+    <div class="card product">
+      <div class="thumb">${p.image?`<img src="${p.image}" alt="${escapeHtml(p.name)}"/>`:''}</div>
+      <div class="body">
+        <div class="meta">
+          <div>
+            <div style="font-weight:700">${escapeHtml(p.name)}</div>
+            <div class="muted" style="font-size:12px">${p.sku} · ${p.unit} · ${p.category}</div>
+          </div>
+          <div class="price">₹${INR(p.price)}</div>
+        </div>
+        <div class="muted" style="margin-top:6px;font-size:14px">${escapeHtml(p.description)}</div>
+        <div class="toolbar" style="margin-top:10px">
+          ${p.bestseller?'<span class="badge">⭐ Bestseller</span>':''}
+          <span class="right"></span>
+          <button class="btn" onclick='addToCart("${p.id}")'>Add to cart</button>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function updateKpis(){
+  setText('kpiProducts', products.length);
+  setText('kpiOrders', orders.length);
+  setText('kpiContacts', contacts.length);
+}
+
+/* ========= CART ========= */
+function openCart(){document.getElementById('cart-panel').style.display='block'; renderCart()}
+function closeCart(){document.getElementById('cart-panel').style.display='none'}
+function updateCartCount(){
+  const count = cart.reduce((s,i)=>s+i.qty,0);
+  document.getElementById('cart-count').textContent = count?`(${count})`:'';
+}
+function addToCart(pid){
+  const p = products.find(x=>x.id===pid); if(!p) return;
+  const ex = cart.find(x=>x.id===pid);
+  if(ex) ex.qty += 1; else cart.push({id:pid, name:p.name, price:p.price, unit:p.unit, image:p.image, sku:p.sku, qty:1});
+  write(LS.cart, cart); updateCartCount();
+}
+function clearCart(){cart = []; write(LS.cart,cart); renderCart(); updateCartCount()}
+function changeQty(pid,delta){
+  const it = cart.find(x=>x.id===pid); if(!it) return;
+  it.qty = Math.max(0,(it.qty||0)+delta);
+  if(it.qty===0) cart = cart.filter(x=>x.id!==pid);
+  write(LS.cart,cart); renderCart(); updateCartCount();
+}
+function renderCart(){
+  const box = document.getElementById('cart-items');
+  if(!cart.length){ box.innerHTML = '<div class="muted">Your cart is empty.</div>'; document.getElementById('cart-total').textContent='0'; return;}
+  box.innerHTML = cart.map(i=>`
+    <div class="card" style="margin-bottom:10px">
+      <div class="body" style="display:flex;gap:12px;align-items:center">
+        <div style="width:90px;height:70px;overflow:hidden;border-radius:12px;background:#f5f5f5">${i.image?`<img src="${i.image}" style="width:100%;height:100%;object-fit:cover">`:''}</div>
+        <div style="flex:1">
+          <div style="font-weight:700">${escapeHtml(i.name)}</div>
+          <div class="muted" style="font-size:12px">${i.sku} · ${i.unit}</div>
+        </div>
+        <div>₹${INR(i.price*i.qty)}</div>
+        <div class="toolbar">
+          <button class="btn secondary" onclick='changeQty("${i.id}",-1)'>–</button>
+          <div style="min-width:28px;text-align:center">${i.qty}</div>
+          <button class="btn secondary" onclick='changeQty("${i.id}",1)'>+</button>
+        </div>
+      </div>
+    </div>
+  `).join('');
+  document.getElementById('cart-total').textContent = INR(cart.reduce((s,i)=>s+i.price*i.qty,0));
+}
+function placeOrder(){
+  if(!cart.length) return alert('Cart is empty.');
+  const customer = {
+    name: byId('chkName').value.trim(),
+    phone: byId('chkPhone').value.trim(),
+    email: byId('chkEmail').value.trim(),
+    address: byId('chkAddr').value.trim()
+  };
+  if(!customer.name || !customer.phone || !customer.address) return alert('Please fill name, phone and address.');
+  const order = {
+    id: `ORD-${Date.now()}`,
+    date: new Date().toISOString(),
+    customer,
+    items: cart.map(({id,name,sku,qty,price})=>({id,name,sku,qty,price})),
+    total: cart.reduce((s,i)=>s+i.price*i.qty,0),
+    status: 'Pending'
+  };
+  orders = [order, ...orders]; write(LS.orders, orders);
+  clearCart(); closeCart(); updateKpis();
+  alert(`Order placed!\nYour Order ID: ${order.id}`);
+}
+
+/* ========= CONTACT ========= */
+function submitContact(){
+  const name = byId('cName').value.trim();
+  const email = byId('cEmail').value.trim();
+  const phone = byId('cPhone').value.trim();
+  const subject = byId('cSubject').value.trim();
+  const message = byId('cMsg').value.trim();
+  if(!name || !email || !message){ toast(false,'Please fill Name, Email & Message.'); return; }
+  const c = { id:id(), date:new Date().toISOString(), name, email, phone, subject, message };
+  contacts = [c, ...contacts]; write(LS.contacts, contacts);
+  ['cName','cEmail','cPhone','cSubject','cMsg'].forEach(k=>byId(k).value='');
+  toast(true,'Thanks! We will get back to you.');
+  updateKpis();
+}
+function toast(ok,msg){
+  const t = document.getElementById('contact-toast');
+  t.className = ok?'toast':'alert';
+  t.textContent = msg; t.style.display='block';
+  setTimeout(()=>t.style.display='none', 2400);
+}
+
+/* ========= EXPORT ========= */
+function makeSheets(){
+  const wb = XLSX.utils.book_new();
+  const prod = products.map(p=>({
+    ID:p.id, Name:p.name, SKU:p.sku, Category:p.category, PriceINR:p.price, Unit:p.unit,
+    Stock:p.stock, Bestseller:p.bestseller?'Yes':'No', ImageURL:p.image, Description:p.description
+  }));
+  const wsP = XLSX.utils.json_to_sheet(prod);
+  XLSX.utils.book_append_sheet(wb, wsP, "Products");
+
+  const ordRows = [];
+  orders.forEach(o=>{
+    o.items.forEach((it,idx)=>{
+      ordRows.push({
+        OrderID:o.id, OrderDate:o.date, CustomerName:o.customer.name, CustomerPhone:o.customer.phone,
+        CustomerEmail:o.customer.email, Address:o.customer.address, Line:idx+1,
+        SKU:it.sku, Product:it.name, Qty:it.qty, UnitPrice:it.price, LineTotal:it.qty*it.price, OrderTotal:o.total, Status:o.status
+      })
+    })
+  });
+  const wsO = XLSX.utils.json_to_sheet(ordRows);
+  XLSX.utils.book_append_sheet(wb, wsO, "Orders");
+
+  const wsC = XLSX.utils.json_to_sheet(contacts.map(c=>({
+    ID:c.id, DateISO:c.date, Name:c.name, Email:c.email, Phone:c.phone, Subject:c.subject||'', Message:c.message
+  })));
+  XLSX.utils.book_append_sheet(wb, wsC, "Contacts");
+  return wb;
+}
+function downloadAll(){
+  const wb = makeSheets();
+  XLSX.writeFile(wb, "Chittus-Masala-and-Snacks.xlsx");
+}
+function downloadSheet(which){
+  let data=[], name=which;
+  if(which==='Products'){
+    data = products.map(p=>({ID:p.id,Name:p.name,SKU:p.sku,Category:p.category,PriceINR:p.price,Unit:p.unit,Stock:p.stock,Bestseller:p.bestseller?'Yes':'No',ImageURL:p.image,Description:p.description}));
+  } else if(which==='Orders'){
+    orders.forEach(o=>o.items.forEach((it,idx)=>data.push({
+      OrderID:o.id,OrderDate:o.date,Customer:o.customer.name,Phone:o.customer.phone,Email:o.customer.email,Address:o.customer.address,Line:idx+1,SKU:it.sku,Product:it.name,Qty:it.qty,UnitPrice:it.price,LineTotal:it.qty*it.price,OrderTotal:o.total,Status:o.status
+    })));
+  } else if(which==='Contacts'){
+    data = contacts.map(c=>({ID:c.id,DateISO:c.date,Name:c.name,Email:c.email,Phone:c.phone,Subject:c.subject||'',Message:c.message}));
+  }
+  const wb = XLSX.utils.book_new();
+  const ws = XLSX.utils.json_to_sheet(data);
+  XLSX.utils.book_append_sheet(wb, ws, name);
+  XLSX.writeFile(wb, `${name}.xlsx`);
+}
+
+/* ========= UTILS ========= */
+function byId(id){return document.getElementById(id)}
+function escapeHtml(s){return (s||'').replace(/[&<>"']/g, m=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[m]))}
+
+init();
+</script>
+</body>
+</html>
